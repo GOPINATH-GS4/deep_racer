@@ -2,6 +2,7 @@ import json
 from requests_html import HTMLSession
 import random
 
+
 class Deepracer:
     def __init__(self, base_url: str, password: str):
         self.__password = password
@@ -10,6 +11,8 @@ class Deepracer:
         self.__set_led_color_url = f'{base_url}/api/set_led_color'
         self.__get_led_color_url = f'{base_url}/api/get_led_color'
         self.__get_battery_level_url = f'{base_url}/api/get_battery_level'
+        self.__start_stop_url = f'{base_url}/api/start_stop'
+        self.__set_calibration_mode_url = f'{base_url}/api/set_calibration_mode'
         self.__cookies = None
         self.__session_token = None
 
@@ -41,7 +44,7 @@ class Deepracer:
         self.__cookies = response.cookies
         return True
 
-    def ___make_header(self):
+    def __make_header(self):
         headers = dict()
         headers['Content-Type'] = 'application/json'
         headers['X-CSRF-Token'] = self.__csrf_tokens[0]
@@ -51,22 +54,24 @@ class Deepracer:
 
     def __set_lead_color(self, r, g, b):
         data = {"red": r, "green": g, "blue": b}
-        response = self.__session.post(self.__set_led_color_url, headers=self.___make_header(), json=data,
+        response = self.__session.post(self.__set_led_color_url, headers=self.__make_header(), json=data,
                                        cookies=self.__cookies,
                                        verify=False)
         if response.status_code != 200:
             print(f'Unable to set the LED COLOR {response.text}')
             return False
+        else:
+            print(response.text)
         return True
 
     def set_led_color(self, r, g, b, rand=False):
         if rand:
-            return self.__set_lead_color(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+            return self.__set_lead_color(random.randint(100, 255), random.randint(100, 255), random.randint(100, 255))
         else:
             return self.__set_lead_color(r, g, b)
 
     def get_led_color(self):
-        response = self.__session.get(self.__get_led_color_url, headers=self.___make_header(), cookies=self.__cookies,
+        response = self.__session.get(self.__get_led_color_url, headers=self.__make_header(), cookies=self.__cookies,
                                       verify=False)
         if response.status_code != 200:
             print(f'Unable to get the LED COLOR {response.text}')
@@ -74,9 +79,30 @@ class Deepracer:
         return json.loads(response.text)
 
     def get_battery_level(self):
-        response = self.__session.get(self.__get_battery_level_url, headers=self.___make_header___make_header(), cookies=self.__cookies,
+        response = self.__session.get(self.__get_battery_level_url, headers=self.__make_header(),
+                                      cookies=self.__cookies,
                                       verify=False)
         if response.status_code != 200:
             print(f'Unable to get the LED COLOR {response.text}')
             return json.dumps(response)
         return json.loads(response.text)
+
+    def stop(self):
+        data = {"start_stop": "stop"}
+        response = self.__session.put(self.__start_stop_url, headers=self.__make_header(), json=data,
+                                      cookies=self.__cookies,
+                                      verify=False)
+        if response.status_code != 200:
+            print(f'Unable to STOP VehicleR {response.text}')
+            return json.dumps(response)
+        return json.loads(response.text)
+
+    def set_calibration_mode(self):
+        response = self.__session.get(self.__set_calibration_mode_url, headers=self.__make_header(),
+                                      cookies=self.__cookies,
+                                      verify=False)
+        if response.status_code != 200:
+            print(f'Unable to get the LED COLOR {response.text}')
+            return json.dumps(response)
+        return json.loads(response.text)
+
